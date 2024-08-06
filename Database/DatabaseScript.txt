@@ -1,0 +1,1053 @@
+﻿USE [BankingSys]
+GO
+/****** Object:  UserDefinedFunction [dbo].[CheckAccountExists]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE FUNCTION [dbo].[CheckAccountExists]
+(
+    @custid VARCHAR(6),
+    @atype VARCHAR(10)
+)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @RecordCount INT;
+
+    SET @RecordCount = (
+        SELECT COUNT(1)
+        FROM account
+        WHERE custid = @custid AND atype = @atype
+    );
+
+    RETURN @RecordCount;
+END;
+GO
+/****** Object:  UserDefinedFunction [dbo].[CheckBranchExistence]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE FUNCTION [dbo].[CheckBranchExistence](
+	@bname VARCHAR(30)
+)
+RETURNS BIT
+AS
+BEGIN
+    DECLARE @Exists BIT;
+
+    SELECT @Exists = CASE WHEN EXISTS (SELECT 1 FROM branch WHERE bname = @bname) THEN 1 ELSE 0 END;
+
+    RETURN @Exists;
+END;
+
+GO
+/****** Object:  UserDefinedFunction [dbo].[CheckLoanExistence]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE FUNCTION [dbo].[CheckLoanExistence](@accountID VARCHAR(6))
+RETURNS BIT
+AS
+BEGIN
+    DECLARE @Exists BIT;
+
+    SELECT @Exists = CASE WHEN EXISTS (SELECT 1 FROM loan WHERE acnumber = @accountID) THEN 1 ELSE 0 END;
+
+    RETURN @Exists;
+END;
+
+GO
+/****** Object:  UserDefinedFunction [dbo].[CheckPhoneNumberExists2]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [dbo].[CheckPhoneNumberExists2]
+(
+    @mobileno VARCHAR(10)
+)
+RETURNS BIT
+AS
+BEGIN
+    DECLARE @Exists BIT;
+
+    -- Check if the phone number exists
+    SELECT @Exists = CASE WHEN EXISTS (SELECT 1 FROM customer WHERE mobileno = @mobileno) THEN 1 ELSE 0 END;
+
+    -- Return the result
+    RETURN @Exists;
+END;
+GO
+/****** Object:  Table [dbo].[account]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[account](
+	[acnumber] [varchar](6) NOT NULL,
+	[custid] [varchar](6) NULL,
+	[bid] [varchar](6) NULL,
+	[opening_balance] [numeric](7, 0) NULL,
+	[aod] [date] NULL,
+	[atype] [varchar](10) NULL,
+	[astatus] [varchar](10) NULL,
+	[password] [varchar](30) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[acnumber] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+ CONSTRAINT [UQ_CustomerAccountType] UNIQUE NONCLUSTERED 
+(
+	[custid] ASC,
+	[atype] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[admin]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[admin](
+	[username] [nvarchar](50) NOT NULL,
+	[password] [nvarchar](50) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[username] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[branch]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[branch](
+	[bid] [varchar](6) NOT NULL,
+	[bname] [varchar](30) NULL,
+	[bcity] [varchar](30) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[bid] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[bid] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[customer]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[customer](
+	[custid] [varchar](6) NOT NULL,
+	[fname] [varchar](30) NULL,
+	[mname] [varchar](30) NULL,
+	[ltname] [varchar](30) NULL,
+	[city] [varchar](15) NULL,
+	[mobileno] [varchar](10) NULL,
+	[occupation] [varchar](10) NULL,
+	[bdate] [date] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[custid] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[mobileno] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[loan]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[loan](
+	[acnumber] [varchar](6) NOT NULL,
+	[loan_amount] [numeric](7, 0) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[acnumber] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[sub_admin]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[sub_admin](
+	[username] [nvarchar](50) NOT NULL,
+	[password] [nvarchar](50) NOT NULL,
+	[bid] [varchar](6) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[username] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[trandetails]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[trandetails](
+	[tnumber] [varchar](10) NULL,
+	[acnumber] [varchar](6) NULL,
+	[dot] [date] NULL,
+	[medium_of_transaction] [varchar](20) NULL,
+	[transaction_type] [varchar](20) NULL,
+	[transaction_amount] [numeric](7, 0) NULL
+) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[account]  WITH CHECK ADD FOREIGN KEY([bid])
+REFERENCES [dbo].[branch] ([bid])
+GO
+ALTER TABLE [dbo].[account]  WITH CHECK ADD FOREIGN KEY([custid])
+REFERENCES [dbo].[customer] ([custid])
+GO
+ALTER TABLE [dbo].[loan]  WITH CHECK ADD FOREIGN KEY([acnumber])
+REFERENCES [dbo].[account] ([acnumber])
+GO
+ALTER TABLE [dbo].[sub_admin]  WITH CHECK ADD FOREIGN KEY([bid])
+REFERENCES [dbo].[branch] ([bid])
+GO
+ALTER TABLE [dbo].[trandetails]  WITH CHECK ADD FOREIGN KEY([acnumber])
+REFERENCES [dbo].[account] ([acnumber])
+GO
+/****** Object:  StoredProcedure [dbo].[CalculateTotalAccounts]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[CalculateTotalAccounts]
+AS
+BEGIN
+    DECLARE @TotalAccounts INT;
+
+    SELECT @TotalAccounts = COUNT(*) FROM account;
+
+    SELECT @TotalAccounts AS TotalAccounts;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[CalculateTotalLoans]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[CalculateTotalLoans]
+AS
+BEGIN
+    DECLARE @TotalLoans INT;
+
+    SELECT @TotalLoans = COUNT(*) FROM loan;
+
+    SELECT @TotalLoans AS TotalLoans;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[CalculateTotalTransactions]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[CalculateTotalTransactions]
+AS
+BEGIN
+    DECLARE @TotalTransactions INT;
+
+    SELECT @TotalTransactions = COUNT(*) FROM trandetails;
+
+    SELECT @TotalTransactions AS TotalTransactions;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[CloseBranch]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[CloseBranch]
+    @branchIdToDelete VARCHAR(6)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @targetBranchId VARCHAR(6);
+
+    -- Check if the branch to delete is the last branch
+    IF NOT EXISTS (SELECT 1 FROM branch WHERE bid <> @branchIdToDelete)
+    BEGIN
+        -- If it's the last branch, delete all accounts
+        DELETE FROM account;
+        -- Delete the branch
+        DELETE FROM branch WHERE bid = @branchIdToDelete;
+        RETURN;
+    END
+
+    -- Otherwise, find the branch with the least accounts
+    SELECT TOP 1 @targetBranchId = bid
+    FROM branch
+    WHERE bid <> @branchIdToDelete
+    ORDER BY (SELECT COUNT(*) FROM account WHERE bid = branch.bid);
+
+    -- Move accounts to the target branch
+    UPDATE account
+    SET bid = @targetBranchId
+    WHERE bid = @branchIdToDelete;
+
+    -- Delete the branch
+    DELETE FROM branch WHERE bid = @branchIdToDelete;
+END;
+
+GO
+/****** Object:  StoredProcedure [dbo].[DeleteAccount]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE PROCEDURE [dbo].[DeleteAccount]
+    @acnumber VARCHAR(10)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Update trandetails to mark associated transactions as 'DELETED'
+	DELETE FROM trandetails WHERE acnumber = @acnumber;
+
+	-- Delete loans related to the account
+    DELETE FROM loan WHERE acnumber = @acnumber;
+
+    -- Delete the account record
+    DELETE FROM account WHERE acnumber = @acnumber;
+
+END;
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[DeleteCustomer]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[DeleteCustomer]
+    @custid VARCHAR(6)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Delete loans related to the customer's accounts
+    DELETE FROM loan WHERE acnumber IN (SELECT acnumber FROM account WHERE custid = @custid);
+
+    -- Delete transactions related to the customer's accounts
+    DELETE FROM trandetails WHERE acnumber IN (SELECT acnumber FROM account WHERE custid = @custid);
+
+    -- Delete accounts of the customer
+    DELETE FROM account WHERE custid = @custid;
+
+    -- Finally, delete the customer
+    DELETE FROM customer WHERE custid = @custid;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[DeleteLoan]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[DeleteLoan]
+    @acnumber VARCHAR(6)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM loan WHERE acnumber = @acnumber;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[Deposit]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[Deposit]
+    @acnumber VARCHAR(6),
+    @medium_of_transaction VARCHAR(20),
+    @transaction_amount NUMERIC(7, 0)
+AS
+BEGIN
+    DECLARE @tnumber VARCHAR(10);
+
+    BEGIN TRANSACTION;
+
+    -- Generate a unique transaction number with the desired format
+    SELECT TOP 1 @tnumber = 'T' + RIGHT('000000000' + CONVERT(VARCHAR, COALESCE(MAX(CAST(SUBSTRING(tnumber, 2, 9) AS INT)), 0) + 1), 9)
+    FROM trandetails;
+
+    -- Insert the deposit transaction into the trandetails table
+    INSERT INTO trandetails (tnumber, acnumber, dot, medium_of_transaction, transaction_type, transaction_amount)
+    VALUES (@tnumber, @acnumber, GETDATE(), @medium_of_transaction, 'Deposit', @transaction_amount);
+
+    -- Update the account balance (you should adjust this based on your specific logic)
+    UPDATE account
+    SET opening_balance = opening_balance + @transaction_amount
+    WHERE acnumber = @acnumber;
+
+    -- If everything is successful, commit the transaction
+    COMMIT TRANSACTION;
+END;
+
+GO
+/****** Object:  StoredProcedure [dbo].[GenerateNextAccountId]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- Stored Procedure to generate next account ID
+CREATE PROCEDURE [dbo].[GenerateNextAccountId]
+AS
+BEGIN
+    DECLARE @lastNumber INT;
+    DECLARE @nextAccountId VARCHAR(6);
+
+    SELECT TOP 1 @lastNumber = CONVERT(INT, SUBSTRING(acnumber, 2, LEN(acnumber) - 1))
+    FROM account
+    ORDER BY aod DESC;
+
+    IF @lastNumber IS NULL
+        SET @lastNumber = 0;
+
+    IF @lastNumber = 0
+        SET @nextAccountId = 'A00001';
+    ELSE
+        SET @nextAccountId = 'A' + RIGHT('00000' + CAST(@lastNumber + 1 AS VARCHAR(5)), 5);
+
+    SELECT @nextAccountId AS NextAccountId;
+END;
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[GenerateNextBranchId]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- Stored Procedure to generate next customer ID
+CREATE PROCEDURE [dbo].[GenerateNextBranchId]
+AS
+BEGIN
+    DECLARE @lastNumber INT;
+    DECLARE @nextBranchId VARCHAR(6);
+
+    SELECT TOP 1 @lastNumber = CONVERT(INT, SUBSTRING(bid, 2, LEN(bid) - 1))
+    FROM branch
+
+    IF @lastNumber IS NULL
+        SET @lastNumber = 0;
+
+    IF @lastNumber = 0
+        SET @nextBranchId = 'B001';
+    ELSE
+        SET @nextBranchId = 'B' + RIGHT('00' + CAST(@lastNumber + 1 AS VARCHAR(5)), 5);
+
+    SELECT @nextBranchId AS NextBranchId;
+END;
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[GenerateNextCustomerId]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- Stored Procedure to generate next customer ID
+CREATE PROCEDURE [dbo].[GenerateNextCustomerId]
+AS
+BEGIN
+    DECLARE @lastNumber INT;
+    DECLARE @nextCustomerId VARCHAR(6);
+
+    SELECT TOP 1 @lastNumber = CONVERT(INT, SUBSTRING(custid, 2, LEN(custid) - 1))
+    FROM customer
+    ORDER BY bdate DESC;
+
+    IF @lastNumber IS NULL
+        SET @lastNumber = 0;
+
+    IF @lastNumber = 0
+        SET @nextCustomerId = 'C00001';
+    ELSE
+        SET @nextCustomerId = 'C' + RIGHT('00000' + CAST(@lastNumber + 1 AS VARCHAR(5)), 5);
+
+    SELECT @nextCustomerId AS NextCustomerId;
+END;
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[InsertAccount]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[InsertAccount]
+      @acnumber VARCHAR(6),
+      @custid  VARCHAR(6),
+      @bid VARCHAR(6),
+      @opening_balance NUMERIC(7, 0),
+      @aod DATE,
+      @atype VARCHAR(10),
+      @astatus VARCHAR(10),
+	  @password VARCHAR(30)
+AS
+BEGIN
+    INSERT INTO account (acnumber, custid, bid, opening_balance, aod, atype, astatus, password)
+    VALUES (@acnumber, @custid, @bid, @opening_balance, CONVERT(DATE, @aod, 23), @atype, @astatus, @password);
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[InsertBranch]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[InsertBranch]
+      @bid VARCHAR(6),
+      @bname  VARCHAR(30),
+      @bcity VARCHAR(30)
+AS
+BEGIN
+    INSERT INTO branch (bid, bname, bcity)
+    VALUES (@bid, @bname, @bcity);
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[InsertCustomer]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[InsertCustomer]
+    @custid VARCHAR(6),
+    @fname VARCHAR(30),
+    @mname VARCHAR(30),
+    @ltname VARCHAR(30),
+    @city VARCHAR(15),
+    @mobileno VARCHAR(10),
+    @occupation VARCHAR(10),
+    @bdate DATE
+AS
+BEGIN
+    INSERT INTO customer (custid, fname, mname, ltname, city, mobileno, occupation, bdate)
+    VALUES (@custid, @fname, @mname, @ltname, @city, @mobileno, @occupation, @bdate);
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[InsertLoan]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[InsertLoan]
+    @accountID VARCHAR(6),
+    @loanAmount NUMERIC(7, 0)
+AS
+BEGIN
+    -- Check if the account exists before adding a loan
+    IF EXISTS (SELECT 1 FROM account WHERE acnumber = @accountID)
+    BEGIN
+        -- Check if a loan already exists for the specified account ID
+        IF NOT EXISTS (SELECT 1 FROM loan WHERE acnumber = @accountID)
+        BEGIN
+            -- Add the loan
+            INSERT INTO loan (acnumber, loan_amount)
+            VALUES (@accountID, @loanAmount);
+        END
+    END
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[LoanPayment]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[LoanPayment]
+    @acnumber VARCHAR(6),
+    @payment_amount NUMERIC(7, 0),
+    @excess_amount NUMERIC(7, 0) OUTPUT
+AS
+BEGIN
+    DECLARE @tnumber VARCHAR(10);
+    DECLARE @remaining_loan_amount NUMERIC(7, 0);
+    DECLARE @account_balance NUMERIC(7, 0);
+
+    BEGIN TRANSACTION;
+
+    -- Generate a unique transaction number with the desired format
+    SELECT TOP 1 @tnumber = 'T' + RIGHT('000000000' + CONVERT(VARCHAR, COALESCE(MAX(CAST(SUBSTRING(tnumber, 2, 9) AS INT)), 0) + 1), 9)
+    FROM trandetails;
+
+    -- Get the remaining loan amount
+    SELECT @remaining_loan_amount = loan_amount
+    FROM loan
+    WHERE acnumber = @acnumber;
+
+    -- Get the current account balance
+    SELECT @account_balance = opening_balance
+    FROM account
+    WHERE acnumber = @acnumber;
+
+    -- Check if there is no remaining loan amount
+    IF @remaining_loan_amount = 0
+    BEGIN
+        -- If there is no remaining loan amount, throw an error
+        THROW 50000, 'No Loans to pay. Please enter a valid payment amount.', 1;
+    END
+
+    -- Check if the payment amount is greater than the remaining loan amount
+    IF @payment_amount >= @remaining_loan_amount
+    BEGIN
+        -- Calculate the excess amount
+        SET @excess_amount = @payment_amount - @remaining_loan_amount;
+
+        -- Check if there are sufficient funds to cover the remaining loan amount
+        IF @remaining_loan_amount > @account_balance
+        BEGIN
+            -- If there are insufficient funds, throw an error
+            THROW 50001, 'Insufficient funds. Please enter a valid payment amount.', 1;
+        END
+
+        -- Update the loan amount to zero
+        UPDATE loan
+        SET loan_amount = 0
+        WHERE acnumber = @acnumber;
+
+        -- Deduct the remaining loan amount from the account balance
+        UPDATE account
+        SET opening_balance = opening_balance - @remaining_loan_amount
+        WHERE acnumber = @acnumber;
+
+        -- Insert the loan payment transaction into the trandetails table
+        INSERT INTO trandetails (tnumber, acnumber, dot, medium_of_transaction, transaction_type, transaction_amount)
+        VALUES (@tnumber, @acnumber, GETDATE(), 'Online', 'Loan Payment', @remaining_loan_amount);
+    END
+    ELSE
+    BEGIN
+        -- Check if there are sufficient funds to cover the payment amount
+        IF @payment_amount > @account_balance
+        BEGIN
+            -- If there are insufficient funds, throw an error
+            THROW 50001, 'Insufficient funds. Please enter a valid payment amount.', 1;
+        END
+
+        -- Update the loan amount
+        UPDATE loan
+        SET loan_amount = @remaining_loan_amount - @payment_amount
+        WHERE acnumber = @acnumber;
+
+        -- Deduct the payment amount from the account balance
+        UPDATE account
+        SET opening_balance = opening_balance - @payment_amount
+        WHERE acnumber = @acnumber;
+
+        -- Insert the loan payment transaction into the trandetails table
+        INSERT INTO trandetails (tnumber, acnumber, dot, medium_of_transaction, transaction_type, transaction_amount)
+        VALUES (@tnumber, @acnumber, GETDATE(), 'Online', 'Loan Payment', @payment_amount);
+    END
+
+    -- If everything is successful, commit the transaction
+    COMMIT TRANSACTION;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[LoanPayment2]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[LoanPayment2]
+    @acnumber VARCHAR(6),
+    @payment_amount NUMERIC(7, 0),
+    @payment_method VARCHAR(10),
+    @excess_amount NUMERIC(7, 0) OUTPUT
+AS
+BEGIN
+    DECLARE @tnumber VARCHAR(10);
+    DECLARE @remaining_loan_amount NUMERIC(7, 0);
+
+    BEGIN TRANSACTION;
+
+    -- Check if there is an existing loan
+    SELECT @remaining_loan_amount = loan_amount
+    FROM loan
+    WHERE acnumber = @acnumber;
+
+    -- If the loan amount is already zero, throw an error
+    IF @remaining_loan_amount = 0
+    BEGIN
+        -- No loan to pay, return an error code
+        COMMIT TRANSACTION;
+        THROW 51001, 'No loan amount to pay.', 1;
+        RETURN; -- Indicate an error
+    END
+
+    -- Generate a unique transaction number with the desired format
+    SELECT TOP 1 @tnumber = 'T' + RIGHT('000000000' + CONVERT(VARCHAR, COALESCE(MAX(CAST(SUBSTRING(tnumber, 2, 9) AS INT)), 0) + 1), 9)
+    FROM trandetails;
+
+    -- Update the loan amount
+    UPDATE loan
+    SET loan_amount = CASE
+                         WHEN @payment_amount >= @remaining_loan_amount THEN 0
+                         ELSE @remaining_loan_amount - @payment_amount
+                      END
+    WHERE acnumber = @acnumber;
+
+    -- Calculate the excess amount
+    SET @excess_amount = CASE
+                           WHEN @payment_amount >= @remaining_loan_amount THEN @payment_amount - @remaining_loan_amount
+                           ELSE 0
+                        END;
+
+    -- If the payment amount exceeds the remaining loan amount, add excess amount to the account balance
+    IF @payment_amount >= @remaining_loan_amount
+    BEGIN
+        -- Insert the loan payment transaction into the trandetails table
+        INSERT INTO trandetails (tnumber, acnumber, dot, medium_of_transaction, transaction_type, transaction_amount)
+        VALUES (@tnumber, @acnumber, GETDATE(), @payment_method, 'Loan Payment', @remaining_loan_amount);
+    END
+    ELSE
+    BEGIN
+        -- Insert the partial loan payment transaction into the trandetails table
+        INSERT INTO trandetails (tnumber, acnumber, dot, medium_of_transaction, transaction_type, transaction_amount)
+        VALUES (@tnumber, @acnumber, GETDATE(), @payment_method, 'Partial Loan Payment', @payment_amount);
+    END
+
+    -- If everything is successful, commit the transaction
+    COMMIT TRANSACTION;
+    RETURN 0; -- Indicate success
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[Transfer]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- Create the Transfer procedure
+CREATE PROCEDURE [dbo].[Transfer]
+    @source_acnumber VARCHAR(6),
+    @destination_acnumber VARCHAR(6),
+    @transfer_amount NUMERIC(7, 0)
+AS
+BEGIN
+    DECLARE @tnumber VARCHAR(10);
+
+    -- Check if the transfer amount is less than 100
+    IF @transfer_amount < 100
+    BEGIN
+        THROW 51000, 'Error: Amount is too small to send (minimum transfer amount is 100).', 1;
+    END
+
+    -- Check if the source account has sufficient balance
+    DECLARE @source_balance NUMERIC(7, 0);
+    SELECT @source_balance = opening_balance
+    FROM account
+    WHERE acnumber = @source_acnumber;
+
+    -- Check if the source account balance is sufficient
+    IF @source_balance < @transfer_amount
+    BEGIN
+        THROW 51001, 'Error: Insufficient funds in the source account. Transfer failed.', 1;
+    END
+
+    BEGIN TRANSACTION;
+
+    -- Generate a unique transaction number with the desired format
+    SELECT @tnumber = 'T' + RIGHT('000000000' + CAST(NEXT VALUE FOR TrandetailsSequence AS VARCHAR), 9);
+
+    -- Update the source account balance
+    UPDATE account
+    SET opening_balance = opening_balance - @transfer_amount
+    WHERE acnumber = @source_acnumber;
+
+    -- Update the destination account balance
+    UPDATE account
+    SET opening_balance = opening_balance + @transfer_amount
+    WHERE acnumber = @destination_acnumber;
+
+    -- Insert the transfer transaction into the trandetails table for the source account
+    INSERT INTO trandetails (tnumber, acnumber, dot, medium_of_transaction, transaction_type, transaction_amount)
+    VALUES (@tnumber, @source_acnumber, GETDATE(), 'Online', 'Transfer (Debit)', ABS(@transfer_amount));
+
+    -- Insert the transfer transaction into the trandetails table for the destination account
+    INSERT INTO trandetails (tnumber, acnumber, dot, medium_of_transaction, transaction_type, transaction_amount)
+    VALUES (@tnumber, @destination_acnumber, GETDATE(), 'Online', 'Transfer (Credit)', ABS(@transfer_amount));
+
+    COMMIT TRANSACTION;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[Transfer2]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- Alter the existing Transfer2 procedure
+CREATE PROCEDURE [dbo].[Transfer2]
+    @source_acnumber VARCHAR(6),
+    @destination_acnumber VARCHAR(6),
+    @transfer_amount NUMERIC(7, 0)
+AS
+BEGIN
+    DECLARE @tnumber VARCHAR(10);
+
+    -- Check if the transfer amount is less than 100
+    IF @transfer_amount < 100
+    BEGIN
+        THROW 51000, 'Error: Amount is too small to send (minimum transfer amount is 100).', 1;
+    END
+
+    -- Check if the source account has sufficient balance
+    DECLARE @source_balance NUMERIC(7, 0);
+    SELECT @source_balance = opening_balance
+    FROM account
+    WHERE acnumber = @source_acnumber;
+
+    -- Check if the source account balance is sufficient
+    IF @source_balance < @transfer_amount
+    BEGIN
+        THROW 51001, 'Error: Insufficient funds in the source account. Transfer failed.', 1;
+    END
+
+    BEGIN TRANSACTION;
+
+    -- Generate a unique transaction number with the desired format
+    SELECT @tnumber = 'T' + RIGHT('000000000' + CAST(NEXT VALUE FOR TrandetailsSequence AS VARCHAR), 9);
+
+    -- Update the source account balance
+    UPDATE account
+    SET opening_balance = opening_balance - @transfer_amount
+    WHERE acnumber = @source_acnumber;
+
+    -- Update the destination account balance
+    UPDATE account
+    SET opening_balance = opening_balance + @transfer_amount
+    WHERE acnumber = @destination_acnumber;
+
+    -- Insert the transfer transaction into the trandetails table for the source account
+    INSERT INTO trandetails (tnumber, acnumber, dot, medium_of_transaction, transaction_type, transaction_amount)
+    VALUES (@tnumber, @source_acnumber, GETDATE(), 'Online', 'Transfer (Debit)', ABS(@transfer_amount));
+
+    -- Insert the transfer transaction into the trandetails table for the destination account
+    INSERT INTO trandetails (tnumber, acnumber, dot, medium_of_transaction, transaction_type, transaction_amount)
+    VALUES (@tnumber, @destination_acnumber, GETDATE(), 'Online', 'Transfer (Credit)', ABS(@transfer_amount));
+
+    COMMIT TRANSACTION;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateAccount]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[UpdateAccount]
+    @acnumber VARCHAR(6),
+    @custid VARCHAR(6),
+    @bid VARCHAR(6),
+    @atype VARCHAR(10),
+    @astatus VARCHAR(10),
+    @password VARCHAR(30)
+AS
+BEGIN
+    UPDATE account
+    SET custid = @custid,
+        bid = @bid,
+        atype = @atype,
+        astatus = @astatus,
+        password = @password
+    WHERE acnumber = @acnumber;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateBranch]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[UpdateBranch]
+    @bid VARCHAR(6),
+    @bname VARCHAR(30),
+    @bcity VARCHAR(30)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE branch
+    SET
+        bid = @bid,
+        bname = @bname,
+        bcity = @bcity
+    WHERE
+        bid = @bid;
+END;
+
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateCustomer]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+	CREATE PROCEDURE [dbo].[UpdateCustomer]
+		@custid VARCHAR(6),
+		@fname VARCHAR(30),
+		@mname VARCHAR(30),
+		@ltname VARCHAR(30),
+		@city VARCHAR(15),
+		@mobileno VARCHAR(10),
+		@occupation VARCHAR(10),
+		@bdate DATE
+	AS
+	BEGIN
+		UPDATE customer
+		SET
+			fname = @fname,
+			mname = @mname,
+			ltname = @ltname,
+			city = @city,
+			mobileno = @mobileno,
+			occupation = @occupation,
+			bdate = @bdate
+		WHERE
+			custid = @custid;
+	END
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateLoan]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[UpdateLoan]
+    @acnumber VARCHAR(6),
+    @newLoanAmount NUMERIC(7, 0)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Check if the new loan amount is less than 100
+    IF @newLoanAmount < 100
+    BEGIN
+        -- Throw an error with a custom message
+        THROW 51000, 'Loan amount must be at least 100.', 1;
+    END
+
+    -- Update the loan amount for the specified account number
+    UPDATE loan
+    SET loan_amount = @newLoanAmount
+    WHERE acnumber = @acnumber;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[ValidateLogin]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[ValidateLogin]
+    @InputUsername NVARCHAR(50),
+    @InputPassword NVARCHAR(50),
+    @IsValid INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SET @IsValid = 0;
+
+    -- Check if main admin
+    IF EXISTS (SELECT 1 FROM admin WHERE username = @InputUsername AND password = @InputPassword)
+    BEGIN
+        SET @IsValid = 2; -- Admin
+    END
+    ELSE
+    BEGIN
+        -- Check if sub-admin
+        IF EXISTS (SELECT 1 FROM sub_admin WHERE username = @InputUsername AND password = @InputPassword)
+        BEGIN
+            SET @IsValid = 6; -- Sub-Admin
+        END
+        ELSE
+        BEGIN
+            -- Check if the account is active
+            IF EXISTS (SELECT 1 FROM account WHERE acnumber = @InputUsername AND password = @InputPassword AND astatus = 'Active')
+            BEGIN
+                -- Check if it's a personal account or a loan account
+                IF EXISTS (SELECT 1 FROM account WHERE acnumber = @InputUsername AND atype = 'Personal')
+                BEGIN
+                    SET @IsValid = 1; -- Personal Account, Active
+                END
+                ELSE IF EXISTS (SELECT 1 FROM account WHERE acnumber = @InputUsername AND atype = 'Loan')
+                BEGIN
+                    SET @IsValid = 3; -- Loan Account, Active
+                END
+            END
+            ELSE
+            BEGIN
+                -- Check if it's a personal account or a loan account (inactive)
+                IF EXISTS (SELECT 1 FROM account WHERE acnumber = @InputUsername AND atype = 'Personal' AND astatus = 'Inactive')
+                BEGIN
+                    SET @IsValid = 4; -- Personal Account, Inactive
+                END
+                ELSE IF EXISTS (SELECT 1 FROM account WHERE acnumber = @InputUsername AND atype = 'Loan' AND astatus = 'Inactive')
+                BEGIN
+                    SET @IsValid = 5; -- Loan Account, Inactive
+                END
+            END
+        END
+    END
+END
+GO
+/****** Object:  StoredProcedure [dbo].[Withdraw]    Script Date: 07-Aug-2024 2:12:09 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[Withdraw]
+    @acnumber VARCHAR(6),
+    @medium_of_transaction VARCHAR(20),
+    @transaction_amount NUMERIC(7, 0)
+AS
+BEGIN
+    DECLARE @tnumber VARCHAR(10);
+
+    BEGIN TRANSACTION;
+
+    -- Generate a unique transaction number with the desired format
+    SELECT TOP 1 @tnumber = 'T' + RIGHT('000000000' + CONVERT(VARCHAR, COALESCE(MAX(CAST(SUBSTRING(tnumber, 2, 9) AS INT)), 0) + 1), 9)
+    FROM trandetails;
+
+    -- Insert the withdrawal transaction into the trandetails table
+    INSERT INTO trandetails (tnumber, acnumber, dot, medium_of_transaction, transaction_type, transaction_amount)
+    VALUES (@tnumber, @acnumber, GETDATE(), @medium_of_transaction, 'Withdrawal', @transaction_amount);
+
+    -- Update the account balance (you should adjust this based on your specific logic)
+    UPDATE account
+    SET opening_balance = opening_balance - @transaction_amount
+    WHERE acnumber = @acnumber;
+
+    -- If everything is successful, commit the transaction
+    COMMIT TRANSACTION;
+END;
+GO
